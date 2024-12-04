@@ -25,11 +25,13 @@ set termguicolors
 " This will show you all the spaces, tabs, and trailing spaces in your code
 "set listchars=tab:>·,trail:~,space:·
 set listchars=tab:⇤–⇥,space:~,trail:·,precedes:⇠,extends:⇢,nbsp:×
-set list
+"set list
 
 " Set an 80 line column and its color
 set colorcolumn=80   " highlight column
 highlight ColorColumn ctermbg=0 guibg=lightgrey
+
+set clipboard=unnamedplus
 
 call plug#begin('~/.vim/plugged')
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -67,17 +69,26 @@ Plug 'mfussenegger/nvim-dap'
 Plug 'leoluz/nvim-dap-go'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'rcarriga/nvim-dap-ui'
+Plug 'hiphish/rainbow-delimiters.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'CopilotC-Nvim/CopilotChat.nvim', { 'branch': 'canary' }
 call plug#end()
 
 noremap <leader>w :set list!<cr>
 
+nnoremap <C-z> :b#<cr>
+inoremap <C-z> <Esc>:b#<cr>i
+
 nnoremap <C-Up> 10k
+nnoremap <C-k> 10k
+nnoremap <C-j> 10j
 nnoremap <C-Down> 10j
 inoremap <C-Up> <Esc><Esc>10ki
 inoremap <C-Down> <Esc><Esc>10ji
 
 nnoremap <C-s> <cmd>w<cr>
-nnoremap <Leader>/ :noh<CR>
+inoremap <C-s> <Esc><cmd>w<cr>a
+nnoremap <Leader>\ :noh<CR>
 
 "nnoremap <leader>ff <cmd>Telescope find_files<cr>
 "nnoremap <leader>fg <cmd>Telescope live_grep<cr>
@@ -85,9 +96,9 @@ nnoremap <Leader>/ :noh<CR>
 "nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
 nnoremap <leader>fk <cmd>FzfLua keymaps<cr>
-nnoremap <leader>ff <cmd>FzfLua files<cr>
-nnoremap <leader>fg <cmd>FzfLua grep_project<cr>
-nnoremap <leader>fb <cmd>FzfLua buffers<cr>
+nnoremap ff <cmd>FzfLua files<cr>
+nnoremap fg <cmd>FzfLua live_grep_native<cr>
+nnoremap fb <cmd>FzfLua buffers<cr>
 nnoremap <leader>fdc <cmd>FzfLua dap_commands<cr>
 nnoremap <leader>fdb <cmd>FzfLua dap_breakpoints<cr>
 nnoremap <leader>fdv <cmd>FzfLua dap_variables<cr>
@@ -98,14 +109,20 @@ nnoremap <leader>t= <cmd>NvimTreeResize +10<cr>
 nnoremap <leader>t- <cmd>NvimTreeResize -10<cr>
 
 nnoremap . <cmd>FzfLua lsp_code_actions<cr>
-nnoremap <leader>gr <cmd>FzfLua lsp_references<cr>
-nnoremap <leader>gd <cmd>FzfLua lsp_definitions<cr>
-nnoremap <leader>gi <cmd>FzfLua lsp_implementations<cr>
+nnoremap gr <cmd>FzfLua lsp_references<cr>
+nnoremap gd <cmd>lua vim.lsp.buf.definition()<cr>
+nnoremap gi <cmd>FzfLua lsp_implementations<cr>
+nnoremap ss <cmd>FzfLua lsp_document_symbols<cr>
+nnoremap ga <cmd>FzfLua lsp_live_workspace_symbols<cr>
+
+nnoremap aa <cmd>CopilotChatToggle<cr>
 
 let g:python3_host_prog="/usr/bin/python3"
 let g:formatters_go = ['goimports']
 
 nnoremap == <cmd>Autoformat<cr>
+
+let g:copilot_workspace_folders = ["~/co/backend"]
 
 lua << EOF
   --vim.g.material_style = "deep ocean"
@@ -113,4 +130,38 @@ lua << EOF
   vim.cmd 'colorscheme tokyonight-night'
   require('myconfig')
   require('debugger')
+  require("CopilotChat").setup {
+  --debug = true,
+  context = 'buffers',
+  prompts = {
+        Explain = {
+            mapping = '<leader>ae',
+            description = 'AI Explain',
+        },
+        Review = {
+            mapping = '<leader>ar',
+            description = 'AI Review',
+        },
+        Tests = {
+            mapping = '<leader>at',
+            description = 'AI Tests',
+        },
+        Fix = {
+            mapping = '<leader>af',
+            description = 'AI Fix',
+        },
+        Optimize = {
+            mapping = '<leader>ao',
+            description = 'AI Optimize',
+        },
+        Docs = {
+            mapping = '<leader>ad',
+            description = 'AI Documentation',
+        },
+        CommitStaged = {
+            mapping = '<leader>ac',
+            description = 'AI Generate Commit',
+        },
+    },
+  }
 EOF

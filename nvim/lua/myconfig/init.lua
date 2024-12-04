@@ -1,6 +1,18 @@
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
+vim.g.clipboard = {
+  name = 'OSC 52',
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+  },
+  paste = {
+    ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+    ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
+  },
+}
+
 require('nvim-treesitter.configs').setup({
   highlight = {
     enable = true,
@@ -71,7 +83,7 @@ cmp.setup({
     ['<C-f>'] = cmp.mapping.scroll_docs(-4),
     ['<C-Space>'] = cmp.mapping.complete(),
     ['<Esc>'] = cmp.mapping.close(),
-    ['<Tab>'] = cmp.mapping.confirm({ select = true }),
+    ['<cr>'] = cmp.mapping.confirm({ select = true }),
     ['<Up>'] = cmp.mapping.select_prev_item(select_opts),
     ['<Down>'] = cmp.mapping.select_next_item(select_opts),
     ['<C-p>'] = cmp.mapping.select_prev_item(select_opts),
@@ -304,4 +316,14 @@ local navic = require 'nvim-navic'
                      }
                 },
             }
-
+local actions = require "fzf-lua.actions"
+require'fzf-lua'.setup {
+  grep = {
+    actions = {
+      ["ctrl-r"]   = { actions.toggle_ignore }
+    }
+  },
+  lsp = {
+    async_or_timeout = 15000,
+  }
+}
