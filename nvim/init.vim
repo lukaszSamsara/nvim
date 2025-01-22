@@ -72,6 +72,8 @@ Plug 'rcarriga/nvim-dap-ui'
 Plug 'hiphish/rainbow-delimiters.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'CopilotC-Nvim/CopilotChat.nvim', { 'branch': 'canary' }
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+Plug 'jose-elias-alvarez/null-ls.nvim'
 call plug#end()
 
 noremap <leader>w :set list!<cr>
@@ -83,8 +85,12 @@ nnoremap <C-Up> 10k
 nnoremap <C-k> 10k
 nnoremap <C-j> 10j
 nnoremap <C-Down> 10j
+nnoremap <C-Left> b
+nnoremap <C-Right> w
 inoremap <C-Up> <Esc><Esc>10ki
 inoremap <C-Down> <Esc><Esc>10ji
+inoremap <C-Left> <Esc><Esc>bi
+inoremap <C-Right> <Esc><Esc>wi
 
 nnoremap <C-s> <cmd>w<cr>
 inoremap <C-s> <Esc><cmd>w<cr>a
@@ -120,14 +126,14 @@ nnoremap aa <cmd>CopilotChatToggle<cr>
 let g:python3_host_prog="/usr/bin/python3"
 let g:formatters_go = ['goimports']
 
-nnoremap == <cmd>Autoformat<cr>
+"nnoremap == <cmd>Autoformat<cr>
 
 let g:copilot_workspace_folders = ["~/co/backend"]
 
 lua << EOF
   --vim.g.material_style = "deep ocean"
   --vim.cmd 'colorscheme material'
-  vim.cmd 'colorscheme tokyonight-night'
+  vim.cmd 'colorscheme catppuccin-mocha'
   require('myconfig')
   require('debugger')
   require("CopilotChat").setup {
