@@ -12,26 +12,27 @@ vim.g.clipboard = {
 		["*"] = require("vim.ui.clipboard.osc52").paste("*"),
 	},
 }
-
-require("nvim-treesitter.configs").setup({
-	highlight = {
-		enable = true,
-		additional_vim_regex_highlighting = false,
-	},
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'go' },
+  callback = function() vim.treesitter.start() end,
 })
+--require("nvim-treesitter.config").setup({
+--  highlight = {
+--		enable = true,
+--		additional_vim_regex_highlighting = false,
+--  },
+--})
 require("mason").setup({})
 require("nvim-navic").setup({})
-local lspconfig = require("lspconfig")
-local configs = require("lspconfig/configs")
 
-lspconfig.gopls.setup({
+vim.lsp.config("gopls", {
 	on_attach = function(client, bufnr)
 		require("nvim-navic").attach(client, bufnr)
 	end,
-	cmd = { "gopls", "serve" },
+	cmd = { "gopls" },
 	filetypes = { "go", "gomod" },
-	root_dir = require("lspconfig/util").root_pattern("go.work", "go.mod", ".git"),
-	settings = {
+	root_markers = { "go.work", "go.mod", ".git" },
+  settings = {
 		gopls = {
 			codelenses = {
 				test = true,
@@ -43,7 +44,7 @@ lspconfig.gopls.setup({
 		},
 	},
 })
-
+vim.lsp.enable("gopls")
 local cmp = require("cmp")
 
 local lsp_defaults = {
@@ -54,42 +55,27 @@ local lsp_defaults = {
 		vim.api.nvim_exec_autocmds("User", { pattern = "LspAttached" })
 	end,
 }
-lspconfig.util.default_config = vim.tbl_deep_extend("force", lspconfig.util.default_config, lsp_defaults)
 
-local null_ls = require("null-ls")
-local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-null_ls.setup({
-	sources = {
-		null_ls.builtins.formatting.prettierd,
-		null_ls.builtins.formatting.goimports,
-    null_ls.builtins.formatting.stylua,
-	},
-  on_attach = function(client, bufnr)
-        if client.supports_method("textDocument/formatting") then
-            vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-            vim.api.nvim_create_autocmd("BufWritePre", {
-                group = augroup,
-                buffer = bufnr,
-                callback = function()
-                    vim.lsp.buf.format({ async = false })
-                end,
-            })
-        end
-    end,
+vim.lsp.config("*", lsp_defaults)
+vim.lsp.enable("ts_ls")
+
+-- Prefer LspAttach for keymaps/etc, but you *can* still keep per-server on_attach.
+vim.lsp.config("eslint", {
+  on_attach = on_attach,
+  capabilities = capabilities,
+
+  settings = {
+    validate = "on",
+    packageManager = "yarn",
+  },
+
+  -- Native root detection uses root_markers (instead of lspconfig.util.root_pattern)
+  root_markers = { ".eslintrc-incremental.js", "package.json" },
+
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "tsx" },
 })
 
-lspconfig.ts_ls.setup({})
-
-lspconfig.eslint.setup({
-	on_attach = on_attach,
-	capabilities = capabilities,
-	settings = {
-		validate = "on",
-		packageManager = "yarn",
-	},
-	root_dir = lspconfig.util.root_pattern(".eslintrc-incremental.js", "package.json"),
-	filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", ".tsx" },
-})
+vim.lsp.enable("eslint")
 
 cmp.setup({
 	snippet = {
@@ -234,7 +220,7 @@ require("lualine").setup({
 				function()
 					local msg = ""
 					local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
-					local clients = vim.lsp.get_active_clients()
+					local clients = vim.lsp.get_clients()
 					if next(clients) == nil then
 						return msg
 					end
@@ -350,6 +336,7 @@ require("lualine").setup({
 		},
 	},
 })
+
 local actions = require("fzf-lua.actions")
 require("fzf-lua").setup({
 	grep = {
@@ -360,4 +347,35 @@ require("fzf-lua").setup({
 	lsp = {
 		async_or_timeout = 20000,
 	},
+})
+
+-- Reload files changed outside of nvim
+vim.o.autoread = true
+
+-- Check for file changes on common “I’m back” events
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  pattern = "*",
+  command = "checktime",
+})
+
+-- Optional: tell you when a file was reloaded
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  pattern = "*",
+  callback = function()
+    vim.notify("File changed on disk. Reloaded.", vim.log.levels.WARN)
+  end,
+})
+
+require("gitsigns").setup({
+  on_attach = function(bufnr)
+    local gs = package.loaded.gitsigns
+    local function map(mode, l, r, desc)
+      vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+    end
+    map("n", "]h", gs.next_hunk, "Next hunk")
+    map("n", "[h", gs.prev_hunk, "Prev hunk")
+    map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
+    map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
+    map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
+  end,
 })
