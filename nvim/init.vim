@@ -34,7 +34,7 @@ highlight ColorColumn ctermbg=0 guibg=lightgrey
 set clipboard=unnamedplus
 
 call plug#begin('~/.vim/plugged')
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter', {'branch': 'main', 'do': ':TSUpdate'}
 Plug 'williamboman/mason.nvim'
 Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
@@ -64,16 +64,15 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
 Plug 'ibhagwan/fzf-lua', {'branch': 'main'}
 Plug 'folke/trouble.nvim'
-Plug 'github/copilot.vim'
 Plug 'mfussenegger/nvim-dap'
 Plug 'leoluz/nvim-dap-go'
 Plug 'nvim-neotest/nvim-nio'
 Plug 'rcarriga/nvim-dap-ui'
 Plug 'hiphish/rainbow-delimiters.nvim'
 Plug 'nvim-lua/plenary.nvim'
-Plug 'CopilotC-Nvim/CopilotChat.nvim', { 'branch': 'canary' }
 Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 Plug 'jose-elias-alvarez/null-ls.nvim'
+Plug 'lewis6991/gitsigns.nvim'
 call plug#end()
 
 noremap <leader>w :set list!<cr>
@@ -121,14 +120,14 @@ nnoremap gi <cmd>FzfLua lsp_implementations<cr>
 nnoremap ss <cmd>FzfLua lsp_document_symbols<cr>
 nnoremap ga <cmd>FzfLua lsp_live_workspace_symbols<cr>
 
-nnoremap aa <cmd>CopilotChatToggle<cr>
+nnoremap <leader>gs <cmd>Git<cr>
+nnoremap <leader>gv <cmd>Gvdiffsplit<cr>
+nnoremap <leader>gb <cmd>Git blame<cr>
 
 let g:python3_host_prog="/usr/bin/python3"
 let g:formatters_go = ['goimports']
 
 "nnoremap == <cmd>Autoformat<cr>
-
-let g:copilot_workspace_folders = ["~/co/backend"]
 
 lua << EOF
   --vim.g.material_style = "deep ocean"
@@ -136,38 +135,4 @@ lua << EOF
   vim.cmd 'colorscheme catppuccin-mocha'
   require('myconfig')
   require('debugger')
-  require("CopilotChat").setup {
-  --debug = true,
-  context = 'buffers',
-  prompts = {
-        Explain = {
-            mapping = '<leader>ae',
-            description = 'AI Explain',
-        },
-        Review = {
-            mapping = '<leader>ar',
-            description = 'AI Review',
-        },
-        Tests = {
-            mapping = '<leader>at',
-            description = 'AI Tests',
-        },
-        Fix = {
-            mapping = '<leader>af',
-            description = 'AI Fix',
-        },
-        Optimize = {
-            mapping = '<leader>ao',
-            description = 'AI Optimize',
-        },
-        Docs = {
-            mapping = '<leader>ad',
-            description = 'AI Documentation',
-        },
-        CommitStaged = {
-            mapping = '<leader>ac',
-            description = 'AI Generate Commit',
-        },
-    },
-  }
 EOF

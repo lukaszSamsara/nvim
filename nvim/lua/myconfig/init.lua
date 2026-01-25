@@ -379,3 +379,39 @@ require("gitsigns").setup({
     map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
   end,
 })
+
+
+local function goimports_then_format(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- Ask gopls for "organize imports"
+  local params = vim.lsp.util.make_range_params()
+  params.context = { only = { "source.organizeImports" } }
+
+  local results = vim.lsp.buf_request_sync(bufnr, "textDocument/codeAction", params, 1000)
+  if results then
+    for _, res in pairs(results) do
+      for _, action in pairs(res.result or {}) do
+        if action.edit then
+          vim.lsp.util.apply_workspace_edit(action.edit, "utf-16")
+        end
+        if action.command then
+          vim.lsp.buf.execute_command(action.command)
+        end
+      end
+    end
+  end
+
+  -- Then format (gopls/gofmt)
+  vim.lsp.buf.format({ bufnr = bufnr, async = false })
+end
+
+-- Override `==` only for Go buffers
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "go",
+  callback = function(args)
+    vim.keymap.set("n", "==", function()
+      goimports_then_format(args.buf)
+    end, { buffer = args.buf, desc = "GoImports + format" })
+  end,
+})
